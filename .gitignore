@@ -1,0 +1,11 @@
+.settings/
+AppProperties/
+Forms/
+META-INF/
+Resources/
+SharedElements/
+Views/
+WebContent/
+.classpath
+.project
+plugin.xml

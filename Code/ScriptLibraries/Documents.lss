@@ -1,0 +1,125 @@
+'++LotusScript Development Environment:2:5:(Options):0:74
+Option Public
+
+Use "Communication"
+'++LotusScript Development Environment:2:5:(Forward):0:1
+Declare Public Class Validator
+Declare Public Class Publisher
+
+'++LotusScript Development Environment:2:5:(Declarations):0:10
+'*************
+'* Validator
+'*************
+Public Class Validator
+	uidoc As NotesUIDocument
+	Public Message As String
+	
+	Sub New (oUiDoc As NotesUIDocument, sTextFields As String, sAttFields As String)
+		On Error Goto Oops
+		
+		Set uidoc = oUiDoc
+		uidoc.EditMode = True
+		uidoc.ExpandAllSections
+		uidoc.Document.RemoveItem "SaveOptions" 'Fix non-new documents so they'll save. Stupid RGL.
+		uidoc.Save
+		
+		If sTextFields <> "" Then ValidateTextFields sTextFields
+		If sAttFields <> "" Then ValidateAttachmentFields sAttFields
+		
+Bye:
+		Exit Sub
+		
+Oops:
+		ShowError "Validator > New()"
+		Resume Bye
+	End Sub
+	
+	Private Sub ValidateAttachmentFields(sFields As String)
+		On Error Goto Oops
+		
+		Dim aFields As Variant
+		Dim n As Integer
+		Dim msg As String
+		Dim rt As NotesRichTextItem
+		
+		aFields = Split(sFields,",")
+		For n = 0 To Ubound(aFields)
+			Set rt = uidoc.Document.GetFirstItem(aFields(n))
+			If Isempty(rt.EmbeddedObjects) Then msg = msg & aFields(n) & " field is missing the attachment." & Chr(13)
+		Next
+		If msg <> "" Then Message = Message & msg
+		
+Bye:
+		Exit Sub
+		
+Oops:
+		ShowError "Validator > ValidateAttachmentFields()"
+		Resume Bye
+	End Sub
+	
+	Private Function ValidateRegExp
+		
+	End Function
+	
+	Private Sub ValidateTextFields(sFields As String)
+		On Error Goto Oops
+		
+		Dim aFields As Variant
+		Dim n As Integer
+		Dim msg As String
+		
+		aFields = Split(sFields,",")
+		For n = 0 To Ubound(aFields)
+			If uidoc.FieldGetText(aFields(n)) = "" Then msg = msg & aFields(n) & " is a required field." & Chr(13)
+		Next
+		If msg <> "" Then Message = Message & msg
+		
+Bye:
+		Exit Sub
+		
+Oops:
+		ShowError "Validator > ValidateTextFields()"
+		Resume Bye
+	End Sub
+	
+	Public Sub Finish
+		On Error Goto Oops
+		
+		Dim s As New NotesSession
+		Dim nn As NotesName
+		Dim ni As NotesItem
+		
+		uidoc.Save 'Required to save any changes between New and Finish
+		Set nn = s.CreateName(s.UserName)	
+		Set ni = uidoc.Document.GetFirstItem("DocUpdatedBy")
+		ni.AppendToTextList nn.Common & " " & Now
+		uidoc.FieldSetText "$$ValidateFlag", "Y"		
+		uidoc.Save
+		uidoc.Close
+		
+Bye:
+		Exit Sub
+		
+Oops:
+		ShowError "Validator > Finish()"
+		Resume Bye
+	End Sub
+End Class
+
+'*************
+'* Publisher
+'*************
+Public Class Publisher
+	Sub New(doc As NotesDocument)
+		On Error Goto Oops
+		
+		Msgbox doc.GetItemValue("Form")(0)
+		
+Bye:
+		Exit Sub
+		
+Oops:
+		ShowError "Publisher > New()"
+		Resume Bye
+	End Sub
+End Class

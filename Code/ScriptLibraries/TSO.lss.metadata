@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><note class="filter" maintenanceversion="1.10" replicaid="8625816A00530157" version="9.0" xmlns="http://www.lotus.com/dxl">
+<noteinfo noteid="136" sequence="28" unid="62E06EE0CED30B468625798300700387">
+<created><datetime>20120112T142329,35-06</datetime></created>
+<modified><datetime dst="true">20170727T100638,53-05</datetime></modified>
+<revised><datetime dst="true">20120427T125303,28-05</datetime></revised>
+<lastaccessed><datetime dst="true">20170727T100638,53-05</datetime></lastaccessed>
+<addedtofile><datetime dst="true">20170727T100638,53-05</datetime></addedtofile></noteinfo>
+<updatedby><name>CN=Josh Peebles/OU=AMC/O=FAA</name></updatedby>
+<wassignedby><name>CN=Josh Peebles/OU=AMC/O=FAA</name></wassignedby>
+<item name="$TITLE" sign="true"><text>TSO</text></item>
+<item name="$Flags"><text>s34Q</text></item>
+<item name="$PublicAccess" sign="true"><text>1</text></item>
+
+</note>

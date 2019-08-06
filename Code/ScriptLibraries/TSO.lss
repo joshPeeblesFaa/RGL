@@ -1,0 +1,78 @@
+'++LotusScript Development Environment:2:5:(Options):0:74
+Option Public
+
+Use "Communication"
+Use "Global"
+
+'++LotusScript Development Environment:2:5:(Forward):0:1
+Declare Public Sub RemoveDupes
+
+'++LotusScript Development Environment:2:5:(Declarations):0:2
+
+'++LotusScript Development Environment:2:2:RemoveDupes:1:8
+Public Sub RemoveDupes
+	On Error Goto Oops
+	
+	Dim ses As NotesSession
+	Dim db As NotesDatabase
+	Dim dc As NotesDocumentCollection
+	Dim doc As NotesDocument
+	Dim aPartNum As Variant
+	Dim aPartName As Variant
+	Dim nPos As Integer
+	Dim npos2 As Integer
+	Dim n As Integer
+	Dim vTemp As Variant
+	
+	Set ses = New NotesSession
+	Set db = ses.GetDatabase(SERVER_UAT, DB_TSO, False)
+	Set dc = db.Search({Form = "TSOI" & Date >= @Date(2005; 1; 1)}, Nothing, 0)
+	
+	Set doc = dc.GetFirstDocument
+	
+	Dim s As String, v As Variant, i As Integer
+	aPartNum = doc.GetItemValue("PartNum")
+	aPartName = doc.GetItemValue("PartName")
+	
+	nPos = Ubound(aPartNum)
+	Do
+		nPos2 = 0
+		For n = Lbound(aPartNum) To Ubound(aPartNum)-1
+			If aPartNum(n) > aPartNum(n+1) Then
+				vTemp = aPartNum(n)
+				aPartNum(n) = aPartNum(n+1)
+				aPartNum(n+1) = vTemp
+				vTemp = aPartName(n)
+				aPartName(n) = aPartName(n+1)
+				aPartName(n+1) = vTemp
+				nPos2 = n+1				
+			End If
+		Next
+		nPos = nPos2
+	Loop While nPos > 1
+	
+	Dim nDupes As Integer
+	Dim sTemp As String
+	sTemp = ""
+	For n = 0 To Ubound(aPartNum)
+		If aPartNum(n) = sTemp Then nDupes = nDupes + 1
+		sTemp = aPartNum(n)
+	Next
+	
+	s = doc.GetItemValue("TSONumber")(0) & " - " & doc.GetItemValue("TSOHolder")(0) & Chr(13)
+	For i = 0 To Ubound(aPartNum)
+		s = s & aPartNum(i) & " ===== " & aPartName(i) & Chr(13)
+	Next
+	
+	Msgbox nDupes
+	
+Bye:
+	Set db = Nothing
+	Set dc = Nothing
+	Set doc = Nothing
+	Exit Sub
+	
+Oops:
+	ShowError "TSO: RemoveDupes()"
+	Resume Bye
+End Sub

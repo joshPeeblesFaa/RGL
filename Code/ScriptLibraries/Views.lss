@@ -1,0 +1,29 @@
+'++LotusScript Development Environment:2:5:(Options):0:74
+Option Public
+
+Use "Communication"
+'++LotusScript Development Environment:2:5:(Forward):0:1
+Declare Sub UnvalidatePasted(Source As NotesUIView)
+
+'++LotusScript Development Environment:2:5:(Declarations):0:2
+
+'++LotusScript Development Environment:2:2:UnvalidatePasted:1:8
+Sub UnvalidatePasted(Source As NotesUIView)
+	On Error Goto Oops
+	
+	Dim doc As NotesDocument
+	
+	Set doc = source.Documents.GetFirstDocument
+	Do Until doc Is Nothing
+		doc.~$~$ValidateFlag = "N"
+		doc.Save True, False
+		Set doc = source.Documents.GetNextDocument(doc)
+	Loop
+	
+Bye:
+	Exit Sub
+	
+Oops:
+	ShowError "UnvalidatePasted()"
+	Resume Bye
+End Sub

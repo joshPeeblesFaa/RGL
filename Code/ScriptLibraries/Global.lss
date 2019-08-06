@@ -1,0 +1,135 @@
+'++LotusScript Development Environment:2:5:(Options):0:74
+Option Public
+
+Use "Communication"
+
+%INCLUDE "LSCONST.LSS"
+
+'++LotusScript Development Environment:2:5:(Forward):0:1
+Declare Function HandleDupes(doc As NotesDocument, db As NotesDatabase) As Boolean
+Declare Public Function GetOverwrite(doc As NotesDocument, db As NotesDatabase) As NotesDocument
+Declare Function GetDocByDocId(sKey As String, db As NotesDatabase) As NotesDocument
+Declare Function SortArray(a As Variant, nDim As Byte)
+
+'++LotusScript Development Environment:2:5:(Declarations):0:10
+Const PRD = "avraacokcprdab/AVR/PRD"
+Const UAT = "avraacokcuatab/AVR/UAT"
+Const DB_AC = "Regulatory_and_Guidance_Library\rgAdvisoryCircular.nsf"
+Const DB_DATCOL = "Regulatory_and_Guidance_Library\rgDataCollection.nsf"
+Const DB_PMA = "Regulatory_and_Guidance_Library\rgPMA.nsf"
+Const DB_STC = "Regulatory_and_Guidance_Library\rgSTC.nsf"
+Const DB_TCDS = "Regulatory_and_Guidance_Library\rgMakeModel.nsf"
+Const DB_TSO = "Regulatory_and_Guidance_Library\rgTSO.nsf"
+
+
+'++LotusScript Development Environment:2:1:HandleDupes:3:8
+'Returns True if there is no dupe or if the user selects to overwrite the dupe
+'Returns False if the user selects to not overwrite the dupe.
+Function HandleDupes(doc As NotesDocument, db As NotesDatabase) As Boolean
+	Dim vw As NotesView
+	Dim docDupe As NotesDocument
+	
+	HandleDupes = False
+	Set vw = db.GetView("($Key)")	
+	Set docDupe = vw.GetDocumentByKey(doc.GetItemValue("$$DocId")(0), True)
+	If docDupe Is Nothing Then
+		HandleDupes = True
+	Else
+		If Msgbox("A document with the $$DocId value below already exists. Do you want to overwite it?" +_
+		Chr(13)+Chr(13)+doc.GetItemValue("$$DocId")(0), MB_YESNO, "Overwrite?") = IDYES Then
+			doc.CopyAllItems docDupe, True
+			HandleDupes = True
+		End If
+	End If
+End Function
+
+'++LotusScript Development Environment:2:1:GetOverwrite:1:8
+Public Function GetOverwrite(doc As NotesDocument, db As NotesDatabase) As NotesDocument
+	On Error Goto Oops
+	
+	Dim vw As NotesView
+	Dim docExisting As NotesDocument
+	Dim docNew As NotesDocument
+	
+	Set vw = db.GetView("($Key)")	
+	Set docExisting = vw.GetDocumentByKey(doc.GetItemValue("$$DocId")(0), True)
+	If docExisting Is Nothing Then
+		Set docNew = db.CreateDocument
+		doc.CopyAllItems docNew, True
+	Else
+		If Msgbox("A document with the $$DocId value below already exists. Do you want to overwite it?" +_
+		Chr(13)+Chr(13)+doc.GetItemValue("$$DocId")(0), MB_YESNO, "Overwrite?") = IDYES Then
+			Set docNew = docExisting
+			On Error Resume Next
+			Forall item In docNew.Items
+				docNew.RemoveItem item.Name
+			End Forall
+			On Error Goto Oops
+			doc.CopyAllItems docNew, True
+		Else
+			Set docNew = Nothing
+		End If
+	End If
+	Set GetOverwrite = docNew
+	
+Bye:
+	Exit Function
+	
+Oops:
+	ShowError "Global - GetOverwrite()"
+	Resume Bye
+End Function
+
+'++LotusScript Development Environment:2:1:GetDocByDocId:1:8
+Function GetDocByDocId(sKey As String, db As NotesDatabase) As NotesDocument
+	Dim vw As NotesView
+	Set vw = db.GetView("($Key)")
+	Set GetDocByDocId = vw.GetDocumentByKey(sKey)
+End Function
+
+'++LotusScript Development Environment:2:1:SortArray:1:8
+Function SortArray(a As Variant, nDim As Byte)
+	On Error Goto Oops
+	
+	Dim nPos As Integer
+	Dim nPos2 As Integer
+	Dim n As Integer
+	Dim vTemp As Variant
+	
+	nPos = Ubound(a)
+	If nDim = 0 Then
+		Do
+			nPos2 = 0
+			For n = Lbound(a) To Ubound(a)-1
+				If a(n) > a(n+1) Then
+					vTemp = a(n)
+					a(n) = a(n+1)
+					a(n+1) = vTemp
+					nPos2 = n+1				
+				End If
+			Next
+			nPos = nPos2
+		Loop While nPos > 1		
+	Else
+		nDim = nDim - 1
+		Do			
+			nPos2 = 0
+			For n = Lbound(a) To Ubound(a)-1
+				If a(n, nDim) > a(n+1, nDim) Then
+					vTemp = a(n, nDim)
+					a(n, nDim) = a(n+1, nDim)
+					a(n+1, nDim) = vTemp
+					nPos2 = n+1				
+				End If
+			Next
+			nPos = nPos2
+		Loop While nPos > 0
+	End If
+	
+Bye:
+	Exit Function
+	
+Oops:
+	ShowError "Script Library: Global > SortArray()"
+	Resume Bye
+End Function
